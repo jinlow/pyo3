@@ -128,15 +128,15 @@ impl Number {
 Unlike in Python, PyO3 does not provide the magic comparison methods you might expect like `__eq__`,
  `__lt__` and so on. Instead you have to implement all six operations at once with `__richcmp__`.
 This method will be called with a value of `CompareOp` depending on the operation.
- 
+
 ```rust
 use pyo3::class::basic::CompareOp;
 
 # use pyo3::prelude::*;
-# 
+#
 # #[pyclass]
 # struct Number(i32);
-# 
+#
 #[pymethods]
 impl Number {
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -151,6 +151,28 @@ impl Number {
     }
 }
 ```
+
+If you obtain the result by comparing two Rust values, as in this example, you
+can take a shortcut using `CompareOp::convert`:
+
+```rust
+use pyo3::class::basic::CompareOp;
+
+# use pyo3::prelude::*;
+#
+# #[pyclass]
+# struct Number(i32);
+#
+#[pymethods]
+impl Number {
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
+        op.convert(self.0.cmp(&other.0))
+    }
+}
+```
+
+It converts the `std::cmp::Ordering` obtained from Rust's `Ord` class to the
+required result for the given `CompareOp`.
 
 ### Truthyness
 
